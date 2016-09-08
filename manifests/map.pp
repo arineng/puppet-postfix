@@ -55,6 +55,8 @@ define postfix::map (
   # CIDR and PCRE maps need a postfix reload, but not a postmap
   if $type =~ /^(cidr|pcre)$/ {
     $manage_notify = Service['postfix']
+  } elsif $type =~ /^alias$/ {
+    $manage_notify = Exec["postalias ${name}"]
   } else {
     $manage_notify = Exec["generate ${name}.db"]
   }
@@ -86,6 +88,12 @@ define postfix::map (
     command     => "postmap ${name}",
     path        => $::path,
     #creates    => "${name}.db", # this prevents postmap from being run !
+    refreshonly => true,
+  }
+
+  exec {"postalias ${name}":
+    command     => "postalias hash:${name}",
+    path        => $::path,
     refreshonly => true,
   }
 }
